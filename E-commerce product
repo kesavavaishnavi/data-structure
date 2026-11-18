@@ -1,0 +1,91 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+struct Product
+{
+    int id, quantity;
+    string name;
+    float price;
+};
+
+const int SIZE = 10;
+list<Product> table[SIZE];
+
+int hashFunction(int id) {
+    return id % SIZE;
+}
+
+void addProduct() {
+    Product p;
+
+    cout << "Enter ID, Name, Price, Quantity: ";
+    cin >> p.id >> p.name >> p.price >> p.quantity;
+
+    table[hashFunction(p.id)].push_back(p);
+    cout << "Product Added!\n";
+}
+
+void displayProducts() {
+    for (int i = 0; i < SIZE; i++) {
+        for (auto p : table[i]) {
+            cout << "\nID: " << p.id
+                 << "\nName: " << p.name
+                 << "\nPrice: " << p.price
+                 << "\nQuantity: " << p.quantity << endl;
+        }
+    }
+}
+
+void searchProduct() {
+    int id;
+    cout << "Enter Product ID: ";
+    cin >> id;
+
+    for (auto p : table[hashFunction(id)]) {
+        if (p.id == id) {
+            cout << "Product Found: " << p.name
+                 << " Price: " << p.price << endl;
+            return;
+        }
+    }
+    cout << "Product Not Found!\n";
+}
+
+void deleteProduct() {
+    int id;
+    cout << "Enter Product ID: ";
+    cin >> id;
+
+    auto &l = table[hashFunction(id)];
+
+    for (auto it = l.begin(); it != l.end(); it++) {
+        if (it->id == id) {
+            l.erase(it);
+            cout << "Product Deleted!\n";
+            return;
+        }
+    }
+    cout << "Product Not Found!\n";
+}
+
+int main() {
+    int ch;
+
+    do {
+        cout << "\n1.Add  2.Display  3.Search  4.Delete  5.Exit";
+        cout << "\nEnter Choice: ";
+        cin >> ch;
+
+        switch (ch) {
+            case 1: addProduct(); break;
+            case 2: displayProducts(); break;
+            case 3: searchProduct(); break;
+            case 4: deleteProduct(); break;
+            case 5: cout << "Exit"; break;
+            default: cout << "Invalid Choice";
+        }
+    } while (ch != 5);
+
+    return 0;
+}
