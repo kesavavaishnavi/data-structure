@@ -1,0 +1,285 @@
+
+#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+
+struct Student {
+    int roll;
+    string name;
+    string branch;
+    vector<string> courses;
+    Student* next;
+};
+
+struct HashNode {
+    Student* student;
+    HashNode* next;
+};
+
+Student* head = NULL;
+HashNode* table[10] = {NULL};
+
+// Hash function
+int hashFunction(int roll) {
+    return roll % 10;
+}
+
+// Insert into hash table using chaining
+void insertHash(Student* s) {
+    int index = hashFunction(s->roll);
+
+    HashNode* node = new HashNode;
+    node->student = s;
+    node->next = table[index];
+    table[index] = node;
+}
+
+// Search student using roll number
+Student* searchStudent(int roll) {
+    int index = hashFunction(roll);
+    HashNode* temp = table[index];
+
+    while (temp != NULL) {
+        if (temp->student->roll == roll)
+            return temp->student;
+        temp = temp->next;
+    }
+    return NULL;
+}
+
+// Register new student
+void registerStudent() {
+    Student* s = new Student;
+
+    cout << "Enter Roll Number: ";
+    cin >> s->roll;
+    cin.ignore();
+
+    if (searchStudent(s->roll) != NULL) {
+        cout << "Roll Number already exists!\n";
+        delete s;
+        return;
+    }
+
+    cout << "Enter Name: ";
+    getline(cin, s->name);
+
+    cout << "Enter Branch: ";
+    getline(cin, s->branch);
+
+    s->courses.clear();
+    s->next = head;
+    head = s;
+
+    insertHash(s);
+    cout << "Student registered successfully!\n";
+}
+
+// Update student information
+void updateStudent() {
+    int roll;
+    cout << "Enter Roll Number: ";
+    cin >> roll;
+    cin.ignore();
+
+    Student* s = searchStudent(roll);
+
+    if (s == NULL) {
+        cout << "Student not found!\n";
+        return;
+    }
+
+    cout << "Enter New Name: ";
+    getline(cin, s->name);
+
+    cout << "Enter New Branch: ";
+    getline(cin, s->branch);
+
+    cout << "Student information updated!\n";
+}
+
+// Enroll student in course
+void enrollCourse() {
+    int roll;
+    string course;
+
+    cout << "Enter Roll Number: ";
+    cin >> roll;
+    cin.ignore();
+
+    Student* s = searchStudent(roll);
+
+    if (s == NULL) {
+        cout << "Student not found!\n";
+        return;
+    }
+
+    cout << "Enter Course Name: ";
+    getline(cin, course);
+
+    for (string c : s->courses) {
+        if (c == course) {
+            cout << "Already enrolled in this course!\n";
+            return;
+        }
+    }
+
+    s->courses.push_back(course);
+    cout << "Course enrolled successfully!\n";
+}
+
+// Withdraw student from course
+void withdrawCourse() {
+    int roll;
+    string course;
+
+    cout << "Enter Roll Number: ";
+    cin >> roll;
+    cin.ignore();
+
+    Student* s = searchStudent(roll);
+
+    if (s == NULL) {
+        cout << "Student not found!\n";
+        return;
+    }
+
+    cout << "Enter Course Name to Withdraw: ";
+    getline(cin, course);
+
+    for (int i = 0; i < s->courses.size(); i++) {
+        if (s->courses[i] == course) {
+            s->courses.erase(s->courses.begin() + i);
+            cout << "Course withdrawn successfully!\n";
+            return;
+        }
+    }
+
+    cout << "Course not found!\n";
+}
+
+// Display student details
+void displayStudent() {
+    int roll;
+    cout << "Enter Roll Number: ";
+    cin >> roll;
+
+    Student* s = searchStudent(roll);
+
+    if (s == NULL) {
+        cout << "Student not found!\n";
+        return;
+    }
+
+    cout << "\nRoll Number: " << s->roll;
+    cout << "\nName: " << s->name;
+    cout << "\nBranch: " << s->branch;
+    cout << "\nCourses: ";
+
+    if (s->courses.empty())
+        cout << "No courses enrolled";
+    else {
+        for (string c : s->courses)
+            cout << c << " ";
+    }
+
+    cout << endl;
+}
+
+// Delete student record
+void deleteStudent() {
+    int roll;
+    cout << "Enter Roll Number to Delete: ";
+    cin >> roll;
+
+    Student* s = searchStudent(roll);
+
+    if (s == NULL) {
+        cout << "Student not found!\n";
+        return;
+    }
+
+    // Remove from linked list
+    if (head == s) {
+        head = head->next;
+    } else {
+        Student* temp = head;
+        while (temp->next != s)
+            temp = temp->next;
+        temp->next = s->next;
+    }
+
+    // Remove from hash table
+    int index = hashFunction(roll);
+    HashNode* temp = table[index];
+    HashNode* prev = NULL;
+
+    while (temp != NULL) {
+        if (temp->student == s) {
+            if (prev == NULL)
+                table[index] = temp->next;
+            else
+                prev->next = temp->next;
+
+            delete temp;
+            break;
+        }
+        prev = temp;
+        temp = temp->next;
+    }
+
+    delete s;
+    cout << "Student record deleted successfully!\n";
+}
+
+// Display all students
+void displayAll() {
+    Student* temp = head;
+
+    if (temp == NULL) {
+        cout << "No student records!\n";
+        return;
+    }
+
+    while (temp != NULL) {
+        cout << "\nRoll: " << temp->roll;
+        cout << " | Name: " << temp->name;
+        cout << " | Branch: " << temp->branch;
+        temp = temp->next;
+    }
+    cout << endl;
+}
+
+int main() {
+    int choice;
+
+    do {
+        cout << "\n--- Student Registration System ---\n";
+        cout << "1. Register Student\n";
+        cout << "2. Update Student Information\n";
+        cout << "3. Enroll in Course\n";
+        cout << "4. Withdraw from Course\n";
+        cout << "5. Search Student\n";
+        cout << "6. Delete Student Record\n";
+        cout << "7. Display All Students\n";
+        cout << "8. Exit\n";
+        cout << "Enter Choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: registerStudent(); break;
+            case 2: updateStudent(); break;
+            case 3: enrollCourse(); break;
+            case 4: withdrawCourse(); break;
+            case 5: displayStudent(); break;
+            case 6: deleteStudent(); break;
+            case 7: displayAll(); break;
+            case 8: cout << "Exiting...\n"; break;
+            default: cout << "Invalid Choice!\n";
+        }
+
+    } while (choice != 8);
+
+    return 0;
+}
